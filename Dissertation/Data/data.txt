@@ -1,0 +1,12 @@
+Data Sources
+https://www.eea.europa.eu/data-and-maps/data/eea-reference-grids-2
+downloaded 29-08-2022
+
+https://hub.arcgis.com/datasets/esri::world-continents/explore?filters=eyJDT05USU5FTlQiOlsiRXVyb3BlIl19&location=-0.592498%2C179.999994%2C2.03
+downloaded 29-08-2022
+
+OSM API
+downloaded 29-08-2022
+
+Geofabrik
+

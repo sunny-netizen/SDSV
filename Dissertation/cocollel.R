@@ -103,80 +103,75 @@ write.csv(harvest, "/home/ucfnhbx/Scratch/coco2/harvest.csv", row.names=FALSE)
 
 
 ############### vz
-
-#install.packages('ggstatsplot')
-#library(ggstatsplot)
-#ggstatsplot::ggscatterstats(data = iris, x = Sepal.Length, y = Sepal.Width)
-#install.packages("patchwork", repos = "http://cran.us.r-project.org")
-#library(patchwork)
-#library(gridExtra)
-#install.packages('devtools', repos = "http://cran.us.r-project.org")
-#library(devtools)
-#devtools:install_github ('smin95/smplot')
-#library(smplot)
-#library(tidyverse)
-#install.packages("ggpubr")
-#library(ggpubr)
 library(ggplot2)
+install.packages("egg", dependencies = TRUE)
+library(egg)
+install.packages("devtools", dependencies = TRUE)
+devtools::install_github("thomasp85/patchwork")
+library(patchwork)
+install.packages("cowplot", dependencies = TRUE)
+library(cowplot)
+
 #harvest <- read.csv("/home/ucfnhbx/Scratch/coco2/harvest.csv")
+harvest <- read.csv('~/Documents/Dissertation_codes/SDSV/Dissertation/sapphire/harvest.csv')
+head(harvest)
+summary(harvest$dna)
+summary(harvest$ess)
+summary(harvest$coph)
 
 # histogram
-ggplot(harvest, aes(x=dna)) + geom_histogram(color="white", fill="darkorange") +
+hdna <- ggplot(harvest, aes(x=dna)) + geom_histogram(color="white", fill="darkorange") +
   ylab('Count') + xlab('Genetic Cosine Distance') +
   scale_x_continuous() + scale_y_continuous()
 ggsave("/home/ucfnhbx/Scratch/coco2/histdna.png")
 
-ggplot(harvest, aes(x=ess)) + geom_histogram(color="white", fill="purple") +
-  ylab('Count') + xlab('Values Cosine Distance') + 
+hess <- ggplot(harvest, aes(x=ess)) + geom_histogram(color="white", fill="purple") +
+  ylab('Count') + xlab('Human Values Cosine Distance') + 
   scale_x_continuous() + scale_y_continuous()
 ggsave("/home/ucfnhbx/Scratch/coco2/histess.png")
 
-ggplot(harvest, aes(x=coph)) + geom_histogram(color="white", fill="darkorange") +
-  ylab('Count') + xlab('Cophenetic Distance') +
+hcoph <- ggplot(harvest, aes(x=coph)) + geom_histogram(color="white", fill="darkgreen") +
+  ylab('Count') + xlab('Cophenetic Distance (m)') +
   scale_x_continuous() + scale_y_continuous()
 ggsave("/home/ucfnhbx/Scratch/coco2/histcoph.png")
 
+# boxplot
+# Create a new plot object
+#y-axis more intermediates
+# label meters
+bdna <- ggplot(harvest, aes(x=dna)) + geom_boxplot(fill="darkorange")
+bess  <- ggplot(harvest, aes(x=ess)) + geom_boxplot(fill="purple")
+bcoph  <- ggplot(harvest, aes(x=coph)) + geom_boxplot(fill="darkgreen")
+
+#https://stackoverflow.com/questions/48164435/merge-and-perfectly-align-histogram-and-boxplot-using-ggplot2
+cowplot::plot_grid(bdna, hdna, ncol = 1, rel_heights = c(1, 4), align = 'v', axis = 'lr')
+cowplot::plot_grid(bess, hess, ncol = 1, rel_heights = c(1, 4), align = 'v', axis = 'lr')
+cowplot::plot_grid(bcoph, hcoph, ncol = 1, rel_heights = c(1, 4), align = 'v', axis = 'lr')
+
+install.packages("tidyquant")
+library(tidyquant)
+library(ggplot2)
+library(zoo)
+
 # scatter
 ggplot(harvest) + geom_point(aes(x=coph, y=dna), color = 'darkorange', size = 2) + 
-  ylab('Genetics Cosine Distance') + xlab('.') + xlab('Weighted Cophenetic Distance') +
-  geom_smooth(method="lm", aes(x=coph, y=dna)) +
+  ylab('Genetics Cosine Distance') + xlab('.') + xlab('Cophenetic Distance (m)') +
+  tidyquant::geom_ma(aes(x=coph, y=dna), ma_fun = SMA, n = 200, linetype = "solid", color = "darkgreen") +
+  geom_smooth(method="lm", aes(x=coph, y=dna), color='purple') +
+  #geom_line(aes(x=coph, y=rollmean(x=dna, k=2000, na.pad=TRUE))) +
   scale_x_continuous() + scale_y_continuous()
 ggsave("/home/ucfnhbx/Scratch/coco2/scatterdna.png")
 
 ggplot(harvest) + geom_point(aes(x=coph, y=ess), color = 'purple', size = 2)+
-  ylab('Values Cosine Distance') + xlab('Weighted Cophenetic Distance') +
-  geom_smooth(method="lm", aes(x=coph, y=ess)) +
+  ylab('Values Cosine Distance') + xlab('Cophenetic Distance (m)') +
+  tidyquant::geom_ma(aes(x=coph, y=ess), ma_fun = SMA, n = 2000, linetype = "solid", color = "green") +
+  geom_smooth(method="lm", aes(x=coph, y=ess), color = 'darkorange') +
   scale_x_continuous() + scale_y_continuous()
 ggsave("/home/ucfnhbx/Scratch/coco2/scatteress.png")
+
 
 #png(file_png)
 #grid.arrange(patchworkGrob(dnaplot / essplot), left = 'Cosine Distance')
 #dev.off()
 cor.test(x=harvest$coph, y = harvest$dna, method = c("pearson"))
 cor.test(x=harvest$coph, y = harvest$ess, method = c("pearson"))
-
-
-harvest_1000 <-
-"
-	Pearson's product-moment correlation
-
-data:  harvest$coph and harvest$dna
-t = 12.678, df = 998, p-value < 2.2e-16
-alternative hypothesis: true correlation is not equal to 0
-95 percent confidence interval:
- 0.3177774 0.4246228
-sample estimates:
-      cor 
-0.3724335 
-
-	Pearson's product-moment correlation
-
-data:  harvest$coph and harvest$ess
-t = 4.6731, df = 998, p-value = 3.373e-06
-alternative hypothesis: true correlation is not equal to 0
-95 percent confidence interval:
- 0.08511233 0.20645351
-sample estimates:
-      cor 
-0.1463333 
-"
