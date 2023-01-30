@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <title>Hierarchical Tree</title>
+    <style>
+        /*#my_dataviz {
+        }*/
+
+        .node {
+        fill: steelblue;
+        stroke: none;
+        }
+
+        .link {
+        fill: none;
+        stroke: #ccc;
+        stroke-width: 1px;
+        }
+
+        div {
+        
+        }
+
+        #tree {
+            position: absolute;
+        }
+
+        #axes {
+            position: absolute;
+        }
+
+        g.axis line {
+        stroke-dasharray: 1 1;
+        }
+        
+
+    </style>
+</head>
+<body>
+    <div>
+    <svg id="axes" width="1000" height="1000">
+        <g transform="translate(50, 40)">
+            <g class="yaxis"></g>
+            <g class="yaxistitle"></g>
+            <g class="sizeaxis"></g>
+            <g class="sizelabels"></g>
+            <g class="sizetitle"></g>
+            <g class="coloraxis"></g>
+            <g class="colorlabels"></g>
+            <g class="colortitle"></g>
+        </g> 
+    </svg> 
+
+    <svg id="tree" width="1000" height="850">
+        <g transform="translate(50, 40)">
+            <g class="links"></g>
+            <g class="nodes"></g>
+        </g> 
+    </svg> 
+    </div>  
+</body>
+
+    <script>
+
+    
+    
+    d3.csv("topten.csv").then((table)=>{ 
+        //console.log(table)
+    
+    //////////////////////// create tree
+    // .style('fill', (d) => d3.interpolateSpectral(d.data.size1norm));
+    //https://www.d3indepth.com/hierarchies/
+    //tr -d '"' <a.csv >b.csv
+    //https://observablehq.com/@d3/visiting-a-d3-hierarchy
+
+        // create links and nodes
+        var root = d3.stratify()
+            .id(function(d) { return d.V1; })
+            .parentId(function(d) { return d.V2; })
+            (table);
+        //console.log(root)
+
+        // order the nodes by size
+        var root2 = root.copy()
+            .sum(d => d.value)
+            .sort((a, b) => d3.descending(a.height, b.height) || d3.descending(a.value, b.value))
+        console.log(root2.data.size1norm)
+
+        // assign dimensions to tree
+        var width = 800
+        var height = 800
+        var clusterLayout = d3.cluster().size([width, height]);
+        clusterLayout(root2);
+
+        // link weights
+        let heightScale = d3.scaleLinear()
+            .domain([root2.data.height, 0])
+            .range([0, height]);
+        
+        // node sizes
+        var sizeScale = d3.scaleSqrt()
+            .domain([0, root2.data.size1])
+            .range([2, 15]);
+
+        // green, blue, green, purple, orange, yellow, brown, pink, graaaaaay
+        var colors = ["#E41A1C", "#808B96", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", 
+                        "#FFFF33", "#A65628", "#F781BF" ];
+
+        // Do not include a domain
+        var color = d3.scaleOrdinal().range(colors);
+        //color = d3.scaleOrdinal(d3.schemeCategory10)
+
+
+        // Nodes
+        d3.select('svg g.nodes')
+            .selectAll('circle.node')
+            .data(root2.descendants())
+            .join('circle')
+            .classed('node', true)
+            .attr('cx', function(d) {return d.x ;})
+            //.attr('cy', function(d) {return d.y ;})
+            .attr('cy', function(d) {return heightScale(d.data.height - d.data.weight) ;})
+            .attr('r', d => sizeScale(d.data.size1))
+            
+            .style('fill', (d) => color(d.data.lccrank)) //d3.interpolateSpectral(
+            .style('opacity', 0.9);
+            
+
+        // Links
+        d3.select('svg g.links')
+            .selectAll('line.link')
+            .data(root2.links())
+            .join('line')
+            .classed('link', true)
+            .attr('x1', function(d) {return d.source.x ;})
+            .attr('y1', function(d) {return d.source.y ;})
+            .attr('y1', function(d) {return heightScale(d.source.data.height - d.source.data.weight);})
+            .attr('x2', function(d) {return d.target.x ;})
+            .attr('y2', function(d) {return d.target.y ;})
+            .attr('y2', function(d) {return heightScale(d.target.data.height - d.target.data.weight);})
+    
+    
+    //////////////////////// y axis percolation thresholds
+
+    /*// Append SVG 
+    var svg_y = d3.select("div")
+                .append("svg")
+                .attr("width", 100)
+                .attr("height", 850); */
+
+    // Add scales to axis
+    var y_axis = d3.axisRight()
+        .tickValues([0, 300, 1000, 1200, 1400, 1500, 
+                    1600, 1900, 2000, 2500, 2600, 
+                    2800, 2300, 3300, 3600, 3700, 
+                    4000, 4100, 4500, 5000, 5400, 
+                    6600, 7000, 7500, 14500, 15000])
+        .scale(heightScale)
+        .tickSizeInner(950)
+
+    // Append group and insert axis
+    d3.select("svg g.yaxis").call(y_axis)
+        .style("stroke-dasharray", "1")
+        .style("color", "black")
+        .attr("transform", "translate(-100, 0)");
+        //make separate svg
+
+
+    d3.select('g.yaxistitle')
+        .append("text")
+        .text("Percolation Distance Threshold (m)")
+        .attr("x", 100)
+        .attr("y", -860)
+        .attr("transform", "rotate(90)");
+
+
+    //////////////////////// circle sizes scale 
+    //https://www.d3indepth.com/axes/
+
+    //console.log(root2.data.size1) //23583851
+    var sizesample = [root2.data.size1, root2.data.size1/2, root2.data.size1/4, root2.data.size1/16, 10000];
+    console.log(sizesample.toString())
+    d3.select("svg g.sizeaxis")
+        .selectAll('circle')
+        .data(sizesample)
+        .join('circle')
+        .attr('r', function(d) {return sizeScale(d);})
+        .attr('cx', 220)
+        .attr('cy', function(d) {return sizesample.indexOf(d) * 40 + 105;})
+        .attr('fill', "black");
+        //.attr('stroke', "black");
+    }) //end of d3.csv
+
+    
+    d3.select('#axes')
+        .selectAll('g.sizelabels')
+        //.data([0, 1, 2, 3, 4, 5])
+        .data([0, "23583851 (100%)", "11791925.5 (50%)", "5895962.75 (25%)", "1473990.6875 (6.25%)", "10000 (.004%)"])
+        .join('text')
+        .attr('x', 220)
+        .attr("y", (d, i) => i * 40 + 105)
+        .attr('dx', 80)
+        .attr("dy", 0)
+        .text(d => d)
+
+    d3.select('g.sizetitle')
+        .append("text")
+        .text("Number (and %) of Intersections")
+        .attr("x", 190)
+        .attr("y", 75)
+
+    ///////////////////////// color scale
+    var colorz = [ "#808B96", "#E41A1C","#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF",  "#808B96" ];
+    var colorzz = d3.scaleOrdinal().range(colorz);
+
+    var rank = d3.range(1, 11, 1);
+    var rank2 = d3.range(0, 10, 1);
+    console.log(rank2)
+
+    d3.select('#axes')
+        .selectAll('g.coloraxis')
+        .data(rank)
+        .join('rect')
+        .attr('x', 70)
+        .attr('y', function(d) {return d * 30 + 75;})
+        .attr('width', 15)
+        .attr('height', 15)
+        .style('fill', function(d) {return colorzz(d) ;})
+        
+    d3.select('#axes')
+        .selectAll('g.colorlabels')
+        .data(rank2)
+        .join('text')
+        .attr('x', 70)
+        .attr("y", (d, i) => i * 30 + 75)
+        .attr('dx', 20)
+        .attr("dy", 40)
+        .text(d => d)
+
+    d3.select('g.colortitle')
+        .append("text")
+        .text("Threshold Size Rank")
+        .attr("x", 0)
+        .attr("y", 75)
+
+
+
+        
+        
+
+
+
+        
+    
+    </script>
+    
+</body>
+</html>

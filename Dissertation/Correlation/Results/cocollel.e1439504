@@ -1,0 +1,29 @@
+Linking to GEOS 3.9.1, GDAL 3.3.2, PROJ 8.1.1; sf_use_s2() is TRUE
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+Loading required package: SnowballC
+There were 50 or more warnings (use warnings() to see the first 50)
+`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+Saving 7 x 7 in image
+`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+Saving 7 x 7 in image
+`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+Saving 7 x 7 in image
+`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+`geom_smooth()` using formula 'y ~ x'
+Saving 7 x 7 in image
+`geom_smooth()` using formula 'y ~ x'
+`geom_smooth()` using formula 'y ~ x'
+Saving 7 x 7 in image
+`geom_smooth()` using formula 'y ~ x'
