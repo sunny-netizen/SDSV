@@ -144,6 +144,7 @@ library(terra)
   #guides(color=guide_legend(title="Data Boundaries"))+
 #ggsave(file_combineplot)
 
+#overlap boundaries
 ggplot() + 
   theme_light() +
   geom_sf(data=mainland, 
