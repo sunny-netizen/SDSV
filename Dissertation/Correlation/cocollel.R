@@ -139,9 +139,12 @@ ggsave("/home/ucfnhbx/Scratch/coco2/histcoph.png")
 # Create a new plot object
 #y-axis more intermediates
 # label meters
-bdna <- ggplot(harvest, aes(x=dna)) + geom_boxplot(fill="darkorange")
-bess  <- ggplot(harvest, aes(x=ess)) + geom_boxplot(fill="purple")
-bcoph  <- ggplot(harvest, aes(x=coph)) + geom_boxplot(fill="darkgreen")
+bdna <- ggplot(harvest, aes(x=dna)) + geom_boxplot(fill="darkorange")+
+  theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
+bess  <- ggplot(harvest, aes(x=ess)) + geom_boxplot(fill="purple")+
+  theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
+bcoph  <- ggplot(harvest, aes(x=coph)) + geom_boxplot(fill="darkgreen")+
+  theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())
 
 #https://stackoverflow.com/questions/48164435/merge-and-perfectly-align-histogram-and-boxplot-using-ggplot2
 cowplot::plot_grid(bdna, hdna, ncol = 1, rel_heights = c(1, 4), align = 'v', axis = 'lr')
